@@ -17,5 +17,5 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = '>= 1.9.3'
 
   gem.add_dependency             'sidekiq', '>= 1.0.0', '< 4.0.0'
-  gem.add_development_dependency 'rspec', '~> 2.14.1'
+  gem.add_development_dependency 'rspec', '>= 2.14.1'
 end
