@@ -40,6 +40,16 @@ Example:
   end
 ```
 
+A callback can be fired when a freekiq happens.
+This can be useful for tracking or logging freekiqs separately from the sidekiq logs.
+
+Example:
+``` ruby
+  Sidekiq::Middleware::Server::Freekiqs::callback = ->(worker, msg, queue) do
+    Librato::Metrics.submit freekiqs: { value: 1, source: worker.class.name }
+  end
+```
+
 ## Overview
 
 Up to the configured number of "freekiqs", catch exceptions thrown

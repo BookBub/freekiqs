@@ -165,4 +165,37 @@ describe Sidekiq::Middleware::Server::Freekiqs do
     expect(Sidekiq::RetrySet.new.size).to eq(0)
     expect(Sidekiq::DeadSet.new.size).to eq(0)
   end
+
+  it 'should execute a defined callback' do
+    Sidekiq::Middleware::Server::Freekiqs::callback = ->(worker, msg, queue) do
+      return true
+    end
+
+    handler = build_handler_chain
+    worker = worker_with_freekiqs_enabled
+    job = build_job
+
+    expect(Sidekiq::Middleware::Server::Freekiqs::callback).to receive(:call)
+    expect {
+      handler.invoke(worker, job, 'default') do
+        raise ArgumentError, 'overlooked'
+      end
+    }.to raise_error(Sidekiq::FreekiqException, 'overlooked')
+  end
+
+  it 'should still raise FreekiqException if the callback fails' do
+    Sidekiq::Middleware::Server::Freekiqs::callback = ->(worker, msg, queue) do
+      raise 'callback error'
+    end
+
+    handler = build_handler_chain
+    worker = worker_with_freekiqs_enabled
+    job = build_job
+
+    expect {
+      handler.invoke(worker, job, 'default') do
+        raise ArgumentError, 'overlooked'
+      end
+    }.to raise_error(Sidekiq::FreekiqException, 'overlooked')
+  end
 end

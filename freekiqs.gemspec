@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |gem|
   gem.name                  = 'freekiqs'
-  gem.version               = '0.1.0'
+  gem.version               = '0.2.0'
   gem.authors               = ['Rob Lewis']
   gem.email                 = ['rob@bookbub.com']
   gem.summary               = 'Sidekiq middleware extending RetryJobs to allow silient errors.'
