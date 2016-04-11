@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'celluloid'  # Getting error without this required. Should remove once this supports Sidekiq 4.x
 require 'sidekiq/cli'
 require 'sidekiq/middleware/server/retry_jobs'
 

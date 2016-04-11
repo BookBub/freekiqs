@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |gem|
   gem.name                  = 'freekiqs'
-  gem.version               = '0.2.0'
+  gem.version               = '4.0.0'
   gem.authors               = ['Rob Lewis']
   gem.email                 = ['rob@bookbub.com']
   gem.summary               = 'Sidekiq middleware extending RetryJobs to allow silient errors.'
@@ -16,6 +16,6 @@ Gem::Specification.new do |gem|
   gem.require_paths         = ['lib']
   gem.required_ruby_version = '>= 1.9.3'
 
-  gem.add_dependency             'sidekiq', '>= 1.0.0', '< 4.0.0'
+  gem.add_dependency             'sidekiq', '>= 4.0.0', '< 5.0.0'
   gem.add_development_dependency 'rspec', '>= 2.14.1'
 end
