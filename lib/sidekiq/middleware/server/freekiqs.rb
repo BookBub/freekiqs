@@ -37,9 +37,9 @@ module Sidekiq
         def get_freekiqs_if_enabled(worker, msg)
           freekiqs = nil
           if msg['retry']
-            if worker.class.sidekiq_options['freekiqs'] != false
-              if worker.class.sidekiq_options['freekiqs']
-                freekiqs = worker.class.sidekiq_options['freekiqs'].to_i
+            if worker.class.get_sidekiq_options['freekiqs'] != false
+              if worker.class.get_sidekiq_options['freekiqs']
+                freekiqs = worker.class.get_sidekiq_options['freekiqs'].to_i
               elsif @default_freekiqs
                 freekiqs = @default_freekiqs.to_i
               end
