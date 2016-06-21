@@ -50,6 +50,42 @@ Example:
   end
 ```
 
+An array of specific errors to be freekiq'd can be defined in the `freekiq_for` option.
+
+Example:
+``` ruby
+  class MyWorker
+    include Sidekiq::Worker
+    sidekiq_options freekiqs: 1, freekiq_for: ['MyError']
+      #
+    def perform(param)
+      ...
+    end
+  end
+```
+In this case, if MyWorker fails with a MyError it will get 1 freekiq.
+All other errors thrown by this worker will get no freekiqs.
+
+
+If a `freekiq_for` contains a class name as a constant, any exception is that class
+*or a subclass* of that class will get freekiq'd.
+
+Example:
+``` ruby
+  class SubMyError < MyError; end
+
+  class MyWorker
+    include Sidekiq::Worker
+    sidekiq_options freekiqs: 1, freekiq_for: [MyError]
+      #
+    def perform(param)
+      ...
+    end
+  end
+```
+If MyWorker throws a SubMyError or MyError, it will get freekiq'd.
+
+
 ## Overview
 
 Up to the configured number of "freekiqs", catch exceptions thrown
