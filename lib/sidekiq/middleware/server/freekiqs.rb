@@ -13,12 +13,13 @@ module Sidekiq
         def initialize(opts={})
           @default_freekiqs = opts[:freekiqs]
           @default_freekiq_for = opts[:freekiq_for]
+          @@callback = opts[:callback]
         end
 
         def call(worker, msg, queue)
           yield
         rescue => ex
-          freekiqs = get_freekiqs_if_enabled(worker, msg, ex)
+          freekiqs = get_freekiqs_if_enabled(worker, ex)
           if freekiqs
             if msg['retry_count'].nil? || msg['retry_count'] < freekiqs-1
               begin
@@ -29,15 +30,15 @@ module Sidekiq
                 raise FreekiqException, ex.message
               end
             else
-              Sidekiq.logger.info { "Out of free kiqs for #{msg['class']} job #{msg['jid']}" }
+              Sidekiq.logger.info { "Out of freekiqs for #{msg['class']} job #{msg['jid']}" }
             end
           end
           raise ex
         end
 
-        def get_freekiqs_if_enabled(worker, msg, ex)
+        def get_freekiqs_if_enabled(worker, ex)
           freekiqs = nil
-          if msg['retry']
+          if worker.class.get_sidekiq_options['retry']
             if worker.class.get_sidekiq_options['freekiqs'] != false
               errors = get_freekiq_errors(worker)
               if worker.class.get_sidekiq_options['freekiqs']

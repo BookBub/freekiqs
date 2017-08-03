@@ -3,3 +3,6 @@ gemfiles/*.lock
 Gemfile.lock
 .ruby-version
 pkg
+/.bundle
+/.vagrant
+/ubuntu-*-console.log
