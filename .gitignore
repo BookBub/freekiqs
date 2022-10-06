@@ -6,3 +6,5 @@ pkg
 /.bundle
 /.vagrant
 /ubuntu-*-console.log
+/vendor
+dump.rdb
