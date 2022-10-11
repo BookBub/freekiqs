@@ -5,6 +5,21 @@ by failed jobs and wrapping them with a `FreekiqException` exception class
 that can be filtered by monitoring tools such as New Relic and
 Rollbar.
 
+#### Implementation Details
+
+This relies on Sidekiq's built-in retry handling. Specifically, its
+`retry_count` value. When a job first fails, its `retry_count` value
+is nil (because it hasn't actually been retried yet). That exception,
+along with subsequent exceptions from retries, are caught and wrapped
+with the `FreekiqException` exception.
+Cases where Freekiqs does NOT wrap the exception:
+ - The `retry` option is false
+ - The `freekiqs` option is not set on the worker nor globally
+ - The `freekiqs` option is not set on worker and set to `false` globally
+ - The `freekiqs` option is set to `false` on the worker
+ - The job threw an exception that is not a StandardError (nor a subclass)
+ - The number of thrown exceptions is more than specified freekiqs
+
 Configuration example (in config/initializers/sidekiq.rb):
 ``` ruby
   Sidekiq.configure_server do |config|
@@ -101,26 +116,4 @@ If MyWorker throws a SubMyError or MyError, it will get freekiq'd.
 Version 5 of this gem only works with Sidekiq 5 and higher. If you are using
 an older version of Sidekiq, you'll need to use version [4.1.0](https://github.com/BookBub/freekiqs/tree/v4.1.0).
 
-## Overview
-
-Up to the configured number of "freekiqs", catch exceptions thrown
-from job and wrap them with the `FreekiqException` exception (which is a
-`RuntimeError`). That exception type can be ignored by monitoring
-tools. If job fails more times than configured "freekiqs", thrown
-exception will not be wrapped. That should result in normal operation
-and the exception showing up in monitoring tools.
-
-#### Implementation Details
-
-This relies on Sidekiq's built-in retry handling. Specifically, its
-`retry_count` value. When a job first fails, its `retry_count` value
-is nil (because it hasn't actually been retried yet). That exception,
-along with subsequent exceptions from retries, are caught and wrapped
-with the `FreekiqException` exception.
-Cases where Freekiqs does NOT wrap the exception:
- - The `retry` option is false
- - The `freekiqs` option is not set on the worker nor globally
- - The `freekiqs` option is not set on worker and set to `false` globally
- - The `freekiqs` option is set to `false` on the worker
- - The job threw an exception that is not a StandardError (nor a subclass)
- - The number of thrown exceptions is more than specified freekiqs
+Version 6.5.0 of this gem works with Sidekiq 6.5 and higher.

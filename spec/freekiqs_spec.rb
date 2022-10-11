@@ -1,3 +1,5 @@
+require 'sidekiq'
+require 'sidekiq/api'
 require 'sidekiq/processor'
 
 RSpec.describe Sidekiq::Middleware::Server::Freekiqs do
@@ -15,8 +17,7 @@ RSpec.describe Sidekiq::Middleware::Server::Freekiqs do
   end
 
   def process_job(job_hash)
-    mgr = instance_double('Manager', options: {:queues => ['default']})
-    processor = ::Sidekiq::Processor.new(mgr)
+    processor = Sidekiq::Processor.new(Sidekiq)
     job_msg = Sidekiq.dump_json(job_hash)
     processor.process(Sidekiq::BasicFetch::UnitOfWork.new('queue:default', job_msg))
   end

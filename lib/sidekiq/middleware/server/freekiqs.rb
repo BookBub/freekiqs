@@ -1,5 +1,5 @@
 require 'sidekiq'
-require 'sidekiq/util'
+require 'sidekiq/middleware/modules'
 
 module Sidekiq
   class FreekiqException < RuntimeError; end
@@ -7,7 +7,7 @@ module Sidekiq
   module Middleware
     module Server
       class Freekiqs
-        include Sidekiq::Util
+        include Sidekiq::ServerMiddleware
         @@callback = nil
 
         def initialize(opts={})
@@ -25,12 +25,12 @@ module Sidekiq
               begin
                 @@callback.call(worker, msg, queue) if @@callback
               rescue => callback_exception
-                Sidekiq.logger.info { "Freekiq callback failed for #{msg['class']} job #{msg['jid']}" }
+                logger.info { "Freekiq callback failed for #{msg['class']} job #{msg['jid']}" }
               ensure
                 raise FreekiqException, ex.message
               end
             else
-              Sidekiq.logger.info { "Out of freekiqs for #{msg['class']} job #{msg['jid']}" }
+              logger.info { "Out of freekiqs for #{msg['class']} job #{msg['jid']}" }
             end
           end
           raise ex
