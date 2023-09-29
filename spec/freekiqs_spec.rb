@@ -1,40 +1,49 @@
 require 'sidekiq'
-require 'sidekiq/api'
-require 'sidekiq/processor'
+require 'sidekiq/testing'
 
 RSpec.describe Sidekiq::Middleware::Server::Freekiqs do
   class NonArgumentError < StandardError; end
 
-  def build_job_hash(worker_class, args=[])
-    {'class' => worker_class, 'args' => args}
+  module Sidekiq
+    module Middleware
+      module Server
+        class FakeTestModeEnqueueFailuresForRetry
+          def call(job_instance, job_payload, queue)
+            begin
+              yield
+            rescue => ex
+              if job_payload["retry"]
+                if job_payload["retry_count"]
+                  job_payload["retry_count"] += 1
+                else
+                  job_payload["retry_count"] = 0
+                end
+
+                max_retries = Sidekiq.default_configuration[:max_retries] || 25
+                raise if job_payload["retry_count"] >= max_retries
+
+                job_payload["queue"] = "retry"
+                job_payload["exception_class"] = ex.class
+
+                Sidekiq::Client.push(job_payload)
+              else
+                raise
+              end
+            end
+          end
+        end
+      end
+    end
   end
 
-  def fetch_retry_job
-    retry_set = Sidekiq::RetrySet.new
-    retry_job = retry_set.first
-    retry_set.clear
-    retry_job
-  end
-
-  def config
-    cfg = Sidekiq::Config.new
-    cfg[:backtrace_cleaner] = Sidekiq::Config::DEFAULTS[:backtrace_cleaner]
-    cfg.logger = Logger.new(IO::NULL)
-    cfg.logger.level = Logger::WARN
-    Sidekiq.instance_variable_set :@config, cfg
-    cfg
-  end
-
-  def process_job(job_hash)
-    processor = Sidekiq::Processor.new(@config.default_capsule) { |*args| }
-    job_msg = Sidekiq.dump_json(job_hash)
-    processor.process(Sidekiq::BasicFetch::UnitOfWork.new('queue:default', job_msg))
+  before do
+    Sidekiq::Worker.clear_all
+    Sidekiq::Testing.fake!
   end
 
   def initialize_middleware(middleware_opts={})
-    @config = config
-
-    @config.server_middleware do |chain|
+    Sidekiq::Testing.server_middleware do |chain|
+      chain.add Sidekiq::Middleware::Server::FakeTestModeEnqueueFailuresForRetry
       chain.add Sidekiq::Middleware::Server::Freekiqs, middleware_opts
     end
   end
@@ -52,70 +61,50 @@ RSpec.describe Sidekiq::Middleware::Server::Freekiqs do
     Object.const_set(worker_class_name, klass)
   end
 
-  def cleanup_redis
-    Sidekiq.redis {|c| c.flushdb }
-  end
-
   shared_examples_for 'it should have 2 freekiqs for an ArgumentError' do
     it 'throws Freekiq exception for specified number of freekiqs' do
-      args ||= []
-      expect {
-        process_job(build_job_hash(worker_class, args))
-      }.to raise_error(Sidekiq::FreekiqException, 'Oops')
-      expect(Sidekiq::RetrySet.new.size).to eq(1)
-      retry_job = fetch_retry_job
-      expect(retry_job['retry_count']).to eq(0)
-      expect(retry_job['error_class']).to eq('Sidekiq::FreekiqException')
-      expect(retry_job['error_message']).to eq('Oops')
+      worker_class.perform_async
+      worker_class.perform_one
+      expect(worker_class.jobs).to match_array(
+        a_hash_including(
+          "queue" => "retry",
+          "retry_count" => 0,
+          "exception_class" => "Sidekiq::FreekiqException",
+        ),
+      )
 
-      expect {
-        process_job(retry_job.item)
-      }.to raise_error(Sidekiq::FreekiqException, 'Oops')
-      expect(Sidekiq::RetrySet.new.size).to eq(1)
-      retry_job = fetch_retry_job
-      expect(retry_job['retry_count']).to eq(1)
-      expect(retry_job['error_class']).to eq('Sidekiq::FreekiqException')
-      expect(retry_job['error_message']).to eq('Oops')
+      worker_class.perform_one
+      expect(worker_class.jobs).to match_array(
+        a_hash_including(
+          "queue" => "retry",
+          "retry_count" => 1,
+          "exception_class" => "Sidekiq::FreekiqException",
+        ),
+      )
 
-      expect {
-        process_job(retry_job.item)
-      }.to raise_error(ArgumentError, 'Oops')
-      expect(Sidekiq::RetrySet.new.size).to eq(1)
-      retry_job = fetch_retry_job
-      expect(retry_job['retry_count']).to eq(2)
-      expect(retry_job['error_class']).to eq('ArgumentError')
-      expect(retry_job['error_message']).to eq('Oops')
+      worker_class.perform_one
+      expect(worker_class.jobs).to match_array(
+        a_hash_including(
+          "queue" => "retry",
+          "retry_count" => 2,
+          "exception_class" => "ArgumentError",
+        ),
+      )
     end
   end
 
   shared_examples_for 'it should have 0 freekiqs for an ArgumentError' do
     it 'raises the original error' do
-      args ||= []
-      expect {
-        process_job(build_job_hash(worker_class, args))
-      }.to raise_error(ArgumentError, 'Oops')
-      expect(Sidekiq::RetrySet.new.size).to eq(1)
-      retry_job = fetch_retry_job
-      expect(retry_job['retry_count']).to eq(0)
-      expect(retry_job['error_class']).to eq('ArgumentError')
-      expect(retry_job['error_message']).to eq('Oops')
+      worker_class.perform_async
+      worker_class.perform_one
+      expect(worker_class.jobs).to match_array(
+        a_hash_including(
+          "queue" => "retry",
+          "retry_count" => 0,
+          "exception_class" => "ArgumentError",
+        ),
+      )
     end
-  end
-
-  shared_examples_for 'it should only raise exception for an ArgumentError' do
-    it 'raises the original error' do
-      args ||= []
-      expect {
-        process_job(build_job_hash(worker_class, args))
-      }.to raise_error(ArgumentError, 'Oops')
-      expect(Sidekiq::RetrySet.new.size).to eq(0)
-      # Note: Sidekiq doesn't send job to morgue when retries are diabled
-      expect(Sidekiq::DeadSet.new.size).to eq(0)
-    end
-  end
-
-  before(:each) do
-    cleanup_redis
   end
 
   context 'with default middleware config' do
@@ -172,8 +161,13 @@ RSpec.describe Sidekiq::Middleware::Server::Freekiqs do
     end
 
     describe 'with 2 freekiqs in the worker and retries disabled' do
-      it_behaves_like 'it should only raise exception for an ArgumentError' do
-        let!(:worker_class) { initialize_worker_class(freekiqs: 2, retry: false) }
+      let!(:worker_class) { initialize_worker_class(freekiqs: 2, retry: false) }
+
+      it 'raises the original error' do
+        worker_class.perform_async
+        expect { worker_class.perform_one }.to raise_error(ArgumentError, 'Oops')
+
+        expect(worker_class.jobs.size).to eq 0
       end
     end
   end
@@ -244,17 +238,34 @@ RSpec.describe Sidekiq::Middleware::Server::Freekiqs do
     called = false
     initialize_middleware(callback: ->(worker, msg, queue){called = true})
 
-    expect {
-      process_job(build_job_hash(initialize_worker_class(freekiqs: 2)))
-    }.to raise_error(Sidekiq::FreekiqException, 'Oops')
+    worker_class = initialize_worker_class(freekiqs: 2)
+    worker_class.perform_async
+    worker_class.perform_one
+
+    expect(worker_class.jobs).to match_array(
+      a_hash_including(
+        "queue" => "retry",
+        "retry_count" => 0,
+        "exception_class" => "Sidekiq::FreekiqException",
+      ),
+    )
+
     expect(called).to eq(true)
   end
 
   it 'should still raise FreekiqException if the callback fails' do
     initialize_middleware(callback: ->(worker, msg, queue){raise 'callback error'})
 
-    expect {
-      process_job(build_job_hash(initialize_worker_class(freekiqs: 2)))
-    }.to raise_error(Sidekiq::FreekiqException, 'Oops')
+    worker_class = initialize_worker_class(freekiqs: 2)
+    worker_class.perform_async
+    worker_class.perform_one
+
+    expect(worker_class.jobs).to match_array(
+      a_hash_including(
+        "queue" => "retry",
+        "retry_count" => 0,
+        "exception_class" => "Sidekiq::FreekiqException",
+      ),
+    )
   end
 end
