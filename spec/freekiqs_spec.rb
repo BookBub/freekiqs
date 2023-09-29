@@ -16,14 +16,25 @@ RSpec.describe Sidekiq::Middleware::Server::Freekiqs do
     retry_job
   end
 
+  def config
+    cfg = Sidekiq::Config.new
+    cfg[:backtrace_cleaner] = Sidekiq::Config::DEFAULTS[:backtrace_cleaner]
+    cfg.logger = Logger.new(IO::NULL)
+    cfg.logger.level = Logger::WARN
+    Sidekiq.instance_variable_set :@config, cfg
+    cfg
+  end
+
   def process_job(job_hash)
-    processor = Sidekiq::Processor.new(Sidekiq)
+    processor = Sidekiq::Processor.new(@config.default_capsule) { |*args| }
     job_msg = Sidekiq.dump_json(job_hash)
     processor.process(Sidekiq::BasicFetch::UnitOfWork.new('queue:default', job_msg))
   end
 
   def initialize_middleware(middleware_opts={})
-    Sidekiq.server_middleware do |chain|
+    @config = config
+
+    @config.server_middleware do |chain|
       chain.add Sidekiq::Middleware::Server::Freekiqs, middleware_opts
     end
   end
