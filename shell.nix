@@ -25,7 +25,6 @@ else
 
       # Ruby and Rails dependencies
       ruby_3_1
-      bundler
 
       # Services
       overmind
