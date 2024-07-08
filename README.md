@@ -116,4 +116,4 @@ If MyWorker throws a SubMyError or MyError, it will get freekiq'd.
 Version 5 of this gem only works with Sidekiq 5 and higher. If you are using
 an older version of Sidekiq, you'll need to use version [4.1.0](https://github.com/BookBub/freekiqs/tree/v4.1.0).
 
-Version 6.5.0 of this gem works with Sidekiq 6.5 and higher. Last tested with Sidekiq 7.1.
+Version 6.5.0 of this gem works with Sidekiq 6.5 and higher. Last tested with Sidekiq 7.3.0.
