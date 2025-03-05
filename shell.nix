@@ -24,7 +24,7 @@ else
       cacert
 
       # Ruby and Rails dependencies
-      ruby_3_1
+      ruby_3_2
       bundler
 
       # Services
