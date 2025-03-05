@@ -1,0 +1,51 @@
+PATH
+  remote: .
+  specs:
+    freekiqs (6.5.0)
+      sidekiq (>= 6.5.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    base64 (0.2.0)
+    connection_pool (2.5.0)
+    diff-lcs (1.5.0)
+    logger (1.6.6)
+    rack (3.1.11)
+    rake (13.0.6)
+    redis-client (0.24.0)
+      connection_pool
+    rspec (3.12.0)
+      rspec-core (~> 3.12.0)
+      rspec-expectations (~> 3.12.0)
+      rspec-mocks (~> 3.12.0)
+    rspec-core (3.12.2)
+      rspec-support (~> 3.12.0)
+    rspec-expectations (3.12.3)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-mocks (3.12.6)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-support (3.12.1)
+    sidekiq (7.3.9)
+      base64
+      connection_pool (>= 2.3.0)
+      logger
+      rack (>= 2.2.4)
+      redis-client (>= 0.22.2)
+
+PLATFORMS
+  arm64-darwin-22
+  arm64-darwin-23
+  x86_64-darwin-17
+  x86_64-darwin-21
+  x86_64-darwin-22
+
+DEPENDENCIES
+  freekiqs!
+  rake
+  rspec (~> 3.6)
+
+BUNDLED WITH
+   2.3.25
