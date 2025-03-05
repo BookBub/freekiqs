@@ -18,4 +18,5 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency             'sidekiq', '>= 6.5.0'
   gem.add_development_dependency 'rspec', '>= 3.6.0'
+  gem.add_development_dependency "appraisal"
 end

@@ -1,5 +1,4 @@
 tmp
-gemfiles/*.lock
 .ruby-version
 pkg
 /.bundle
