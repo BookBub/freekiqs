@@ -12,6 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby: [3.2, 3.3, 3.4]
+        gemfile: [sidekiq_7]
     continue-on-error: ${{ endsWith(matrix.ruby, 'head') }}
     steps:
       - uses: actions/checkout@v3
