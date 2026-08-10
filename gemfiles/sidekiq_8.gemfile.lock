@@ -41,8 +41,10 @@ GEM
     thor (1.5.0)
 
 PLATFORMS
-  arm64-darwin-23
-  arm64-darwin-25
+  aarch64-linux
+  arm64-darwin
+  ruby
+  x86_64-linux
 
 DEPENDENCIES
   appraisal
