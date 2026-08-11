@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    freekiqs (6.5.0)
+    freekiqs (6.6.0)
       sidekiq (>= 6.5.0)
 
 GEM
@@ -11,48 +11,46 @@ GEM
       bundler
       rake
       thor (>= 0.14.0)
-    connection_pool (2.5.0)
-    diff-lcs (1.5.0)
-    json (2.10.1)
-    logger (1.6.6)
-    rack (3.1.11)
-    rake (13.0.6)
-    redis-client (0.24.0)
+    connection_pool (3.0.2)
+    diff-lcs (1.6.2)
+    json (2.21.2)
+    logger (1.7.0)
+    rack (3.2.6)
+    rake (13.4.2)
+    redis-client (0.30.1)
       connection_pool
-    rspec (3.12.0)
-      rspec-core (~> 3.12.0)
-      rspec-expectations (~> 3.12.0)
-      rspec-mocks (~> 3.12.0)
-    rspec-core (3.12.2)
-      rspec-support (~> 3.12.0)
-    rspec-expectations (3.12.3)
+    rspec (3.13.2)
+      rspec-core (~> 3.13.0)
+      rspec-expectations (~> 3.13.0)
+      rspec-mocks (~> 3.13.0)
+    rspec-core (3.13.6)
+      rspec-support (~> 3.13.0)
+    rspec-expectations (3.13.5)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.12.0)
-    rspec-mocks (3.12.6)
+      rspec-support (~> 3.13.0)
+    rspec-mocks (3.13.8)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.12.0)
-    rspec-support (3.12.1)
-    sidekiq (8.0.0)
-      connection_pool (>= 2.5.0)
-      json (>= 2.9.0)
-      logger (>= 1.6.2)
-      rack (>= 3.1.0)
-      redis-client (>= 0.23.2)
-    thor (1.3.2)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.7)
+    sidekiq (8.1.6)
+      connection_pool (>= 3.0.0)
+      json (>= 2.16.0)
+      logger (>= 1.7.0)
+      rack (>= 3.2.0)
+      redis-client (>= 0.29.0)
+    thor (1.5.0)
 
 PLATFORMS
-  arm64-darwin-22
-  arm64-darwin-23
-  x86_64-darwin-17
-  x86_64-darwin-21
-  x86_64-darwin-22
+  aarch64-linux
+  arm64-darwin
+  ruby
   x86_64-linux
 
 DEPENDENCIES
   appraisal
   freekiqs!
   rake
-  rspec (~> 3.6)
+  rspec (~> 3.6, >= 3.6.0)
 
 BUNDLED WITH
-   2.3.25
+  4.0.10

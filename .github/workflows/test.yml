@@ -11,11 +11,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [3.2, 3.3, 3.4]
+        ruby: ["3.2", "3.3", "3.4", "4.0"]
         gemfile: [sidekiq_7, sidekiq_8]
     continue-on-error: ${{ endsWith(matrix.ruby, 'head') }}
+    env:
+      BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:

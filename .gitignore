@@ -2,7 +2,10 @@ tmp
 .ruby-version
 pkg
 /.bundle
-/.vagrant
 /ubuntu-*-console.log
 /vendor
+gemfiles/.bundle
+gemfiles/vendor
 dump.rdb
+.direnv
+.envrc
